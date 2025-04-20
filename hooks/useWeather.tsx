@@ -21,7 +21,6 @@ function useWeather() {
       const weather = await weatherReq.json();
       
       const weatherObj = {
-        forecast: weather.forecast,
         weather,
         lang,
         lastUpdated: moment().toISOString()
@@ -39,20 +38,20 @@ function useWeather() {
       try {
         const storedWeather = await AsyncStorage.getItem("weather");
         
-        // if (storedWeather) {
-        //   const parsedWeather = JSON.parse(storedWeather);
-        //   const lastUpdated = moment(parsedWeather.lastUpdated);
-        //   const now = moment();
-        //   const hoursDiff = now.diff(lastUpdated, 'hours');
+        if (storedWeather) {
+          const parsedWeather = JSON.parse(storedWeather);
+          const lastUpdated = moment(parsedWeather.lastUpdated);
+          const now = moment();
+          const hoursDiff = now.diff(lastUpdated, 'hours');
 
-        //   if (hoursDiff >= 3) {
-        //     fetchWeather();
-        //   } else {
-        //     setWeather(parsedWeather);
-        //   }
-        // } else if (location) {
+          if (hoursDiff >= 3) {
+            fetchWeather();
+          } else {
+            setWeather(parsedWeather);
+          }
+        } else if (location) {
           fetchWeather();
-        // }
+        }
       } catch (error) {
         console.error('Error loading stored weather:', error);
       }
@@ -61,7 +60,7 @@ function useWeather() {
     loadStoredWeather();
   }, [location]);
 
-  return weather;
+  return weather?.weather;
 }
 
 export default useWeather;

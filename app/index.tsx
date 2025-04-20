@@ -1,15 +1,16 @@
-import { Text, View, Image } from "react-native";
-import Octicons from "@expo/vector-icons/Octicons";
-import useWeather from "@/hooks/useWeather";
-import { calcularFaseDaLua, classificarCorrenteza, converterCorrentezaParaKmh, padding } from "@/utils/utils";
-import moment from "moment";
-import Svg, { Path } from "react-native-svg";
+import Current from "@/assets/current.svg";
 import HighTideSvg from "@/assets/high_tide.svg";
 import LowTideSvg from "@/assets/low_tide.svg";
-import Current from "@/assets/current.svg";
-import { useTide } from "@/hooks/useTide";
-import { useEffect, useState } from "react";
+import WindSvg from "@/assets/wind.svg";
 import InfoCard from "@/components/InfoCard";
+import CustomText from "@/components/CustomText";
+import { useTide } from "@/hooks/useTide";
+import useWeather from "@/hooks/useWeather";
+import { classificarCorrenteza, converterCorrentezaParaKmh, escalaDeBeaufort, getClosestTimeEntry, padding } from "@/utils/utils";
+import Octicons from "@expo/vector-icons/Octicons";
+import moment from "moment";
+import { useEffect, useState } from "react";
+import { Image, View } from "react-native";
 moment.locale("pt-br");
 
 export default function Index() {
@@ -24,51 +25,28 @@ export default function Index() {
     high: "Maré alta",
   };
   const now = moment().locale("pt-br");
+  const te = moment().utc();
   // Find the closest
-  console.log("now: ", now);
   const date = now.format("LLLL");
   useEffect(() => {
-    console.log("forecast: ", tide);
     if (tideForecast) {
-      console.log("tideForecast: ", tideForecast);
-      const closest = tideForecast.data.reduce(
-        (
-          prev: { time: moment.MomentInput },
-          curr: { time: moment.MomentInput }
-        ) => {
-          const prevDiff = Math.abs(moment.utc(prev.time).diff(now.format()));
-          const currDiff = Math.abs(moment.utc(curr.time).diff(now.format()));
-          return currDiff < prevDiff ? curr : prev;
-        }
-      );
-      const closestCurrent = currentSpeed.hours.reduce(
-        (
-          prev: { time: moment.MomentInput },
-          curr: { time: moment.MomentInput }
-        ) => {
-          // console.log("prev: ",moment.utc(curr.time).toString()," actual time: " ,curr.time);
-          // console.log("now: ", moment().format());
-          const prevDiff = Math.floor(moment.utc(prev.time).diff(now));
-          const currDiff = Math.floor(moment.utc(curr.time).diff(now));
-          return currDiff < prevDiff ? curr : prev;
-        }
-      );
-      setClosestTide(closest);
-      setClosestCurrent(closestCurrent);
+      setClosestTide(getClosestTimeEntry(tideForecast.data));
+      setClosestCurrent(getClosestTimeEntry(currentSpeed.hours));
     }
   }, [tide]);
-  console.log("weather: ", calcularFaseDaLua());
   return (
     <View
       style={{
-        backgroundColor: "#f6f8fc",
+        backgroundColor: "#fbfdff",
         height: "100%",
-        ...padding(10),
+        ...padding(10,20,10,20),
+        flexDirection: 'column',
+        gap: 70
       }}
     >
-      <View style={{ flexDirection: "column", gap: 5 }}>
-        <Text style={{ color: "#b3b5b9", fontWeight: "bold" }}>{date}</Text>
-        {weather?.weather?.name && (
+      <View style={{ flexDirection: "column", gap: 8 }}>
+        <CustomText style={{ fontWeight: '900', color: "#b3b5b9",fontSize: 10, textTransform: "uppercase" }}>{date}</CustomText>
+        {weather?.name && (
           <View
             style={{
               flexDirection: "row",
@@ -78,35 +56,43 @@ export default function Index() {
             }}
           >
             <Octicons name="location" size={18} color="black" />
-            <Text style={{ fontWeight: "bold" }}>
-              {weather?.weather?.name},
-            </Text>
-            <Text style={{ color: "#b3b5b9", fontWeight: "bold" }}>
-              {weather?.weather?.sys?.country}
-            </Text>
+            <CustomText style={{ fontFamily: "Nunito_900Black" }}>
+              {weather?.name},
+            </CustomText>
+            <CustomText style={{fontFamily: "Nunito_900Black", color: "#b3b5b9" }}>
+              {weather?.sys?.country}
+            </CustomText>
           </View>
         )}
       </View>
-      <View style={{flexDirection: "column", alignItems: "center", gap: 20}}>
-        <View style={{ flexDirection: "column", alignItems: "center" }}>
+      <View style={{flexDirection: "column", alignItems: "center", gap: 60}}>
+        <View style={{ flexDirection: "column", alignItems: "center", justifyContent: 'center' }}>
           {closestTide.type === "high" ? (
             <HighTideSvg width={100} height={100} />
           ) : (
             <LowTideSvg width={100} height={100}></LowTideSvg>
           )}
-          <Text>{labelMare[closestTide?.type]}</Text>
+          <View style={{flexDirection: 'column', alignItems: 'center', marginTop: -10}}>
+            <CustomText style={{fontSize: 56, fontWeight: '900'}}>{`${closestTide?.height?.toFixed(1).replace('.', ',')} m`}</CustomText>
+            <CustomText style={{fontSize: 16, fontWeight: '700'}}>{labelMare[closestTide?.type]}</CustomText>
+          </View>
         </View>
-        <View style={{flexDirection: "row", alignItems: "center", gap: 20}}>
+        <View style={{flexDirection: "row", alignItems: "center", justifyContent: 'space-around', width: '100%'}}>
           <InfoCard 
-            icon={<Current scale={0.6} />}
+            icon={<Current style={{width: '50%', height: '50%'}} />}
             title={converterCorrentezaParaKmh(closestCurrent?.currentSpeed?.sg)}
             subtitle={`Correnteza ${classificarCorrenteza(closestCurrent?.currentSpeed?.sg)}`}
           />
           <InfoCard 
-            icon={<Image style={{width: 40, height: 40}} source={{uri: `https://openweathermap.org/img/wn/${weather?.weather?.weather?.[0]?.icon}@4x.png`}}
+            icon={<WindSvg style={{width: '50%', height: '50%'}}/>}
+            title={converterCorrentezaParaKmh(weather?.wind?.speed)}
+            subtitle={`${escalaDeBeaufort(weather?.wind?.speed)}`}
+          />
+          <InfoCard 
+            icon={<Image  style={{width: 40, height: 40}} source={{uri: `https://openweathermap.org/img/wn/${weather?.weather?.[0]?.icon}@4x.png`}}
             />}
-            title={`${Math.round(weather?.weather?.main?.temp)}°C`}
-            subtitle={`${weather?.weather?.weather?.[0]?.description}`}
+            title={`${Math.round(weather?.main?.temp)}°C`}
+            subtitle={`${weather?.weather?.[0]?.description}`}
           />
         </View>
       </View>

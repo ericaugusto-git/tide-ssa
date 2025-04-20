@@ -58,3 +58,51 @@ export function calcularFaseDaLua(date = new Date()) {
 
   return fases[index];
 }
+
+
+export function escalaDeBeaufort(speed: number): string {
+  if (speed < 0.3) {
+    return "Calmo";
+  } else if (speed < 1.6) {
+    return "Brisa leve";
+  } else if (speed < 3.4) {
+    return "Brisa fraca";
+  } else if (speed < 5.5) {
+    return "Brisa moderada";
+  } else if (speed < 8.0) {
+    return "Brisa fresca";
+  } else if (speed < 10.8) {
+    return "Vento forte";
+  } else if (speed < 13.9) {
+    return "Vento muito forte";
+  } else if (speed < 17.2) {
+    return "Ventania";
+  } else if (speed < 20.8) {
+    return "Ventania forte";
+  } else if (speed < 24.5) {
+    return "Tempestade";
+  } else if (speed < 28.5) {
+    return "Tempestade forte";
+  } else if (speed < 32.7) {
+    return "Furacão";
+  } else {
+    return "Furacão violento";
+  }
+}
+
+export function getClosestTimeEntry(data: any[]) {
+  const now = Date.now(); // Current UTC timestamp in ms
+  let result = null;
+  let latestTime = -Infinity;
+
+  for (const entry of data) {
+      const entryTime = new Date(entry.time).getTime();
+
+      if (entryTime <= now && entryTime > latestTime) {
+          latestTime = entryTime;
+          result = entry;
+      }
+  }
+
+  return result;
+}

@@ -31,8 +31,7 @@ export default function CustomText({ style, ...props }: CustomTextProps) {
     }
   };
   const fontFamily = getFontFamily(Array.isArray(style) ? style[0]?.fontWeight : style?.fontWeight);
-  console.log(fontFamily)
-  if ((style as TextStyle).fontWeight) {
+  if ((style as TextStyle)?.fontWeight) {
     delete (style as TextStyle).fontWeight;
   }
   return <Text style={[{ fontFamily }, style]} {...props} />;

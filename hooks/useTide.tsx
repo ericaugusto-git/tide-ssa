@@ -62,12 +62,12 @@ export function useTide() {
           
           // If stored data is not from today, refetch
           if (parsedTide.timestamp !== today) {
-            // await getTide();
+            await getTide();
           } else {
-            setTide(parsedTide);
           }
+          setTide(parsedTide);
         } else {
-          // await getTide();
+          await getTide();
         }
       } catch (error) {
         console.error("Error loading tide data:", error);

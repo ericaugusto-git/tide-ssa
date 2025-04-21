@@ -47,7 +47,10 @@ module.exports = {
     },
     extra: {
       weatherApiKey: process.env.WEATHER_API_KEY,
-      tideApiKey: process.env.TIDE_API_KEY
+      tideApiKey: process.env.TIDE_API_KEY,
+      "eas": {
+        "projectId": "bf4f75c6-442f-45f9-9a88-931a9f6e55f1"
+      }
     }
   }
 }; 
